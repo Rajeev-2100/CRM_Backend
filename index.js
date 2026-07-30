@@ -395,6 +395,32 @@ app.get("/report/pipeline", async (req, res) => {
   }
 });
 
+// bulk Seeding Agents 
+
+function bulkSeedingAgents(bulkData){
+  try {
+    const agents = new SalesAgent(bulkData)
+    const savedAgent = await agents.save()
+    return savedAgent
+  } catch (error) {
+    throw error
+  }
+}
+
+app.post('/api/bulk-agents', async (req,res) => {
+  try {
+    const agents = await bulkSeedingAgents(req.body)
+    if(agents){
+      res.status(201).json({message: 'Saved all agents', data: agents})
+    }else{
+      res.status(404).json({error: 'Something went wrong in the bulk data'})
+      console.error(error.message)
+    }
+  } catch (error) {
+      res.status(500).json({ error: "Failed to fetch report data" });
+  }
+})
+
 const PORT = 3001;
 app.listen(PORT, () => {
   console.log("Server is running on 3001");
