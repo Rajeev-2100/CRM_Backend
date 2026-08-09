@@ -1,13 +1,15 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const corsOptions = {
-  origin: "*",
-  credentials: true,
-  optionSuccessStatus: 200,
-};
 
-app.use(cors(corsOptions));
+app.use(cors({
+  origin: ["https://crm-backend-tawny.vercel.app/", "http://localhost:5173"],
+  credentials: true,
+  methods: ["GET", "POST", "DELETE", "OPTION"],
+  allowedHeaders: ["Content-Type"],
+  optionSuccessStatus: 204,
+}));
+
 app.use(express.json());
 
 const Lead = require("./models/lead.model.js");
@@ -387,37 +389,34 @@ app.get("/report/pipeline", async (req, res) => {
     if (total) {
       res.status(201).json({ totalLeadsInPipeline: total });
     } else {
-      re.status(404).json({ error: "Something wrong in pipeline data" });
-      console.error(error.message);
+      res.status(404).json({ error: "Something wrong in pipeline data" });
     }
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch report data" });
   }
 });
 
-// bulk Seeding Agents 
+// bulk Seeding Agents
 
-function bulkSeedingAgents(bulkData){
+async function bulkSeedingAgents(bulkData) {
   try {
-    const agents = new SalesAgent(bulkData)
-    const savedAgent = await agents.save()
-    return savedAgent
+    const agents = await SalesAgent.insertMany(bulkData);
+    return agents;
   } catch (error) {
-    throw error
+    throw error;
   }
 }
 
-app.post('/api/bulk-agents', async (req,res) => {
+app.post('/api/bulk-agents', async (req, res) => {
   try {
-    const agents = await bulkSeedingAgents(req.body)
-    if(agents){
-      res.status(201).json({message: 'Saved all agents', data: agents})
-    }else{
-      res.status(404).json({error: 'Something went wrong in the bulk data'})
-      console.error(error.message)
+    const agents = await bulkSeedingAgents(req.body);
+    if (agents && agents.length > 0) {
+      res.status(201).json({ message: 'Saved all agents', data: agents });
+    } else {
+      res.status(404).json({ error: 'Something went wrong in the bulk data' });
     }
   } catch (error) {
-      res.status(500).json({ error: "Failed to fetch report data" });
+    res.status(500).json({ error: 'Failed to seed bulk agent data' });
   }
 })
 
