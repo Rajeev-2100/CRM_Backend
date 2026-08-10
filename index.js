@@ -56,13 +56,12 @@ app.get("/agents", async (req, res) => {
   try {
     const agents = await getAllSalesAgent();
     if(agents){
-      res.status(201).json({ message: "All Sales Data is this", data: agent });
+      res.status(201).json({ message: "All Sales Data is this", data: agents });
     }else{
       res.status(404).json({error: 'Something went wrong'})
     }
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch Sales Data" });
-    // console.error(error.message)
   }
 });
 
